@@ -9,7 +9,6 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Moon, Search as SearchIcon, Sun, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MobileNav } from '@/components/MobileNav'
 import { useThemeStore } from '@/stores/theme'
 
 // Scroll-direction-aware sticky: scroll-down hides the bar, scroll-up
@@ -83,9 +82,6 @@ export function Header() {
       }
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
-        <div className={mobileOpen ? 'hidden sm:block' : ''}>
-          <MobileNav />
-        </div>
         <Link
           to="/"
           onClick={onLogoClick}

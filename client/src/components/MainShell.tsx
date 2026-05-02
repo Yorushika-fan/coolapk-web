@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react'
 import { Header } from '@/components/Header'
 import { LeftNav } from '@/components/LeftNav'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
 
 // Three-column shell used by every top-level page. Left nav is sticky on
 // `lg+` and hidden below; content is the main flex-1 column; the optional
@@ -36,7 +37,12 @@ export function MainShell({
     <div>
       <Header />
       <main
-        className={'mx-auto max-w-7xl p-4 ' + (className ?? '')}
+        className={
+          // Bottom padding on mobile so content isn't tucked under the
+          // fixed `MobileBottomNav` (h-14 + safe-area). Desktop (lg+)
+          // doesn't render the bar so the extra padding is dropped.
+          'mx-auto max-w-7xl p-4 pb-20 lg:pb-4 ' + (className ?? '')
+        }
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <LeftNav />
@@ -48,6 +54,7 @@ export function MainShell({
           )}
         </div>
       </main>
+      <MobileBottomNav />
     </div>
   )
 }
