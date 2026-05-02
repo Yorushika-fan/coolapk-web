@@ -25,7 +25,11 @@ function OPBadge() {
 function NestedReplies({ rows, parentUid }: { rows: Reply[]; parentUid: string }) {
   if (!rows.length) return null
   return (
-    <ul className="mt-2 space-y-1 rounded-lg bg-muted/40 px-3 py-2">
+    // Stronger left thread-indicator + soft fill panel, mini-avatar per
+    // row so each reply visibly belongs to a distinct user. The panel
+    // is rounded only on the right so the left border reads as the
+    // continuation of the parent comment.
+    <ul className="mt-2 space-y-2 rounded-r-lg border-l-2 border-primary/40 bg-muted/50 py-2 pl-3 pr-3">
       {rows.map((r) => {
         // Show "回复 @某人" prefix only when the reply is addressed at
         // someone OTHER than the parent comment author — within a single
@@ -33,34 +37,42 @@ function NestedReplies({ rows, parentUid }: { rows: Reply[]; parentUid: string }
         // would be noisy. (Coolapk-app omits the prefix in this case.)
         const showReplyTo =
           !!r.rusername && !!r.ruid && r.ruid !== parentUid
+        const initial = r.username?.[0]?.toUpperCase() ?? '?'
         return (
-          <li
-            key={r.id}
-            className="text-[13px] leading-relaxed text-foreground/90"
-          >
-            <Link
-              to={`/u/${r.uid}`}
-              className="font-medium text-foreground hover:underline"
-            >
-              {r.username}
+          <li key={r.id} className="flex items-start gap-2">
+            <Link to={`/u/${r.uid}`} className="mt-0.5 shrink-0">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={r.userAvatar} alt={r.username} />
+                <AvatarFallback className="text-[10px]">
+                  {initial}
+                </AvatarFallback>
+              </Avatar>
             </Link>
-            {r.isFeedAuthor && <OPBadge />}
-            {showReplyTo && (
-              <>
-                <span className="text-muted-foreground"> 回复 </span>
-                <Link
-                  to={`/u/${r.ruid}`}
-                  className="feed-html-link font-medium hover:underline"
-                >
-                  @{r.rusername}
-                </Link>
-              </>
-            )}
-            <span className="text-muted-foreground">: </span>
-            <FeedSnippet
-              html={r.message}
-              className="inline text-foreground/90"
-            />
+            <div className="min-w-0 flex-1 text-[13px] leading-relaxed text-foreground/90">
+              <Link
+                to={`/u/${r.uid}`}
+                className="font-medium text-foreground hover:underline"
+              >
+                {r.username}
+              </Link>
+              {r.isFeedAuthor && <OPBadge />}
+              {showReplyTo && (
+                <>
+                  <span className="text-muted-foreground"> 回复 </span>
+                  <Link
+                    to={`/u/${r.ruid}`}
+                    className="feed-html-link font-medium hover:underline"
+                  >
+                    @{r.rusername}
+                  </Link>
+                </>
+              )}
+              <span className="text-muted-foreground">: </span>
+              <FeedSnippet
+                html={r.message}
+                className="inline text-foreground/90"
+              />
+            </div>
           </li>
         )
       })}
