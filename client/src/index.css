@@ -99,16 +99,18 @@
   white-space: nowrap;
 }
 
-/* Inline Unicode emoji — mapped from `[名字]` tokens. Slightly larger
- * than body text so it reads as a glyph, but inline-block + baseline
- * alignment so it sits flush with surrounding Chinese text without
- * breaking line height. `font-feature-settings` disables ligatures
- * inside the span so adjacent emoji don't fuse on macOS. */
-.emoji-glyph {
+/* Inline Coolapk emoji image — `[名字]` tokens with a known mapping
+ * render as `<img class="emoji-img">` pointing at /emoji/<index>.png.
+ * Sized in `em` so the glyph scales with the surrounding text; inline-
+ * block + text-bottom alignment keeps it flush with CJK baselines
+ * without breaking line height. `select-none` because emojis aren't
+ * meant to be copy-pasted as image bytes. */
+.emoji-img {
   display: inline-block;
-  margin: 0 1px;
-  font-size: 1.05em;
-  line-height: 1;
-  vertical-align: baseline;
-  font-feature-settings: 'liga' 0;
+  width: 1.35em;
+  height: 1.35em;
+  margin: 0 0.05em;
+  vertical-align: text-bottom;
+  user-select: none;
+  -webkit-user-drag: none;
 }

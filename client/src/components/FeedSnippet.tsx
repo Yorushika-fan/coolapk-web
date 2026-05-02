@@ -27,8 +27,12 @@ const STAGE1_TAGS = [
 ]
 const STAGE1_ATTR = ['href', 'class', 'title']
 
-const FINAL_TAGS = ['b', 'br', 'em', 'i', 'p', 'span', 'strong', 'u']
-const FINAL_ATTR = ['class', 'title']
+// `img` is in the final allowlist so emoji injection (`<img class="emoji-img">`)
+// survives the second sanitize pass. `src` is constrained to `/emoji/<n>.png`
+// at the injection site, but we still rely on DOMPurify's URL scheme filter
+// to reject anything weird that slips in from the upstream HTML.
+const FINAL_TAGS = ['b', 'br', 'em', 'i', 'img', 'p', 'span', 'strong', 'u']
+const FINAL_ATTR = ['alt', 'class', 'loading', 'src', 'title']
 
 export function FeedSnippet({
   html,

@@ -1,19 +1,22 @@
 import { Fragment, useMemo, type ReactNode } from 'react'
 import { EMOJI_MAP } from '@/lib/emojiMap'
 
-// Coolapk text content is peppered with `[名字]` tokens that map to PNG
-// images on a non-public CDN (requires login on /v6/emojiPicture/list).
-// Instead of bundling those images, we maintain a name → Unicode lookup
-// table (`emojiMap.ts`) covering the most-used names. Names with no
-// Unicode equivalent (酷安 mascot, custom memes) fall back to a small
-// gray pill chip that shows the original token name.
+// Coolapk text content is peppered with `[名字]` tokens. The 108-emoji
+// canonical set ships as PNG assets under `/public/emoji/<index>.png` —
+// extracted from the official Android v16.2.0 client (R.array.coolapk_
+// emotion_array + matching res/drawable-v1 assets). `EMOJI_MAP` is the
+// name → array-index lookup used to compose the URL. Tokens whose name
+// isn't in the canonical set fall back to a small gray pill chip that
+// shows the original bracketed text — these are typically prose like
+// `[原文已删除]`, not real emoji.
 //
 // Two shapes:
 //   1. `renderCoolapkText(text)` / `useCoolapkText(text)` — for plain strings
-//      (FeedCard, ReplyList, etc). Returns ReactNode tree.
+//      (FeedCard, ReplyList, etc). Returns ReactNode tree with `<img>` tags.
 //   2. `injectEmojiHTML(html)` — for already-sanitized HTML strings
 //      (FeedSnippet, FeedDetailBody). Replaces tokens via regex; caller
-//      re-sanitizes.
+//      re-sanitizes (the `<img class="emoji-img">` shape is in both
+//      allowlists).
 
 // Token grammar: `[name]` where name is any non-bracket, non-newline, 1-12
 // chars. Conservative — Coolapk feeds also use bracketed prose like
@@ -69,17 +72,17 @@ export function useCoolapkText(text: string | null | undefined): ReactNode {
 }
 
 function EmojiPill({ name }: { name: string }) {
-  const unicode = EMOJI_MAP[name]
-  if (unicode) {
+  const idx = EMOJI_MAP[name]
+  if (idx !== undefined) {
     return (
-      <span
-        className="mx-[1px] inline-block align-baseline text-[1.05em] leading-none"
+      <img
+        src={`/emoji/${idx}.png`}
+        alt={name}
         title={name}
-        role="img"
-        aria-label={name}
-      >
-        {unicode}
-      </span>
+        loading="lazy"
+        decoding="async"
+        className="emoji-img"
+      />
     )
   }
   return (
@@ -108,11 +111,10 @@ export function dropAnchorsToSpans(html: string): string {
     .replace(/<\/a>/gi, '</span>')
 }
 
-// Replace [name] tokens inside a HTML string. Known names render as the
-// mapped Unicode glyph wrapped in a `.emoji-glyph` span (CSS scales it
-// slightly so it sits well next to body text); unknown names keep the
-// gray pill chip (`.emoji-tag`). Caller re-sanitizes — both class names
-// are in the FeedSnippet / FeedDetailBody allowlists.
+// Replace [name] tokens inside a HTML string. Known names render as a
+// `<img class="emoji-img" src="/emoji/<idx>.png">`; unknown names keep
+// the gray pill chip. Caller re-sanitizes — both `<img>` and the pill
+// shape are in the FeedSnippet / FeedDetailBody allowlists.
 export function injectEmojiHTML(html: string): string {
   if (!html || html.indexOf('[') === -1) return html
   return html.replace(TOKEN_RE, (_match, name: string) => {
@@ -121,9 +123,9 @@ export function injectEmojiHTML(html: string): string {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
-    const unicode = EMOJI_MAP[name]
-    if (unicode) {
-      return `<span class="emoji-glyph" title="${safe}" role="img" aria-label="${safe}">${unicode}</span>`
+    const idx = EMOJI_MAP[name]
+    if (idx !== undefined) {
+      return `<img class="emoji-img" src="/emoji/${idx}.png" alt="${safe}" title="${safe}" loading="lazy" />`
     }
     return `<span class="emoji-tag" title="emoji: ${safe}">${safe}</span>`
   })
