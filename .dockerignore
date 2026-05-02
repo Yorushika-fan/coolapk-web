@@ -1,0 +1,29 @@
+# Local virtualenvs and caches
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+
+# Node modules — pnpm install runs inside the build stage
+**/node_modules
+**/dist
+**/.vite
+
+# Editor / OS noise
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Local env (secrets) — pass at runtime via env_file, not bake into image
+.env
+server/.env
+
+# Git metadata
+.git
+.gitignore
+
+# Docs / dev artifacts
+*.log
+*.swp

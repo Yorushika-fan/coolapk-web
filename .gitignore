@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Node / Vite
+node_modules/
+client/dist/
+client/.vite/
+client/.eslintcache
+
+# Secrets — never commit
+.env
+.env.local
+server/.env
+server/.env.local
+
+# OMC tooling state (oh-my-claudecode)
+.omc/
+**/.omc/
+
+# Tests / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,28 @@
+# One-container deploy: FastAPI serves both `/api/v6/*` (Coolapk proxy) and
+# the bundled SPA. Edit `.env` (or copy from `server/.env.example`) to set
+# the iOS-mode credentials before bringing the stack up.
+#
+#   cp server/.env.example .env
+#   # …edit .env…
+#   docker compose up -d --build
+#
+# Override `PORT` in `.env` to publish on something other than 8000 on the
+# host. The container always listens on 8000 internally.
+services:
+  coolapk-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: coolapk-web:latest
+    container_name: coolapk-web
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3); sys.exit(0 if r.status==200 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
