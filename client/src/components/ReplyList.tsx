@@ -68,10 +68,26 @@ function NestedReplies({ rows, parentUid }: { rows: Reply[]; parentUid: string }
   )
 }
 
+// At most this many child replies render inline by default; if the
+// thread is bigger, show a "展开剩余" toggle. Mirrors Coolapk-app
+// behavior — short threads (1-3 replies) read inline as part of the
+// comment, longer ones get a collapse to keep the wall-of-text down.
+const INLINE_REPLY_LIMIT = 3
+
 function ReplyItem({ reply }: { reply: Reply }) {
-  const [open, setOpen] = useState(false)
-  const childCount = reply.replyRowsCount ?? reply.replyRows?.length ?? 0
-  const rows = reply.replyRows ?? []
+  const allRows = reply.replyRows ?? []
+  const totalCount = reply.replyRowsCount ?? allRows.length
+  // Replies the upstream API didn't include in this batch (only the
+  // first ~5 are inlined). Surfaced as a passive note since we don't
+  // have a per-reply pagination endpoint wired up yet.
+  const remoteHidden = Math.max(0, totalCount - allRows.length)
+  const [expanded, setExpanded] = useState(false)
+  const visibleRows =
+    expanded || allRows.length <= INLINE_REPLY_LIMIT
+      ? allRows
+      : allRows.slice(0, INLINE_REPLY_LIMIT)
+  const localHidden = allRows.length - visibleRows.length
+
   return (
     <li className="flex gap-3 border-b border-border py-3 last:border-0">
       <Link to={`/u/${reply.uid}`} className="shrink-0">
@@ -96,17 +112,25 @@ function ReplyItem({ reply }: { reply: Reply }) {
           html={reply.message}
           className="mt-1 text-sm leading-relaxed text-foreground"
         />
-        {childCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-1 h-7 px-2 text-xs text-muted-foreground"
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? '收起' : `查看 ${childCount} 条回复`}
-          </Button>
+        {visibleRows.length > 0 && (
+          <NestedReplies rows={visibleRows} parentUid={reply.uid} />
         )}
-        {open && <NestedReplies rows={rows} parentUid={reply.uid} />}
+        {(localHidden > 0 || remoteHidden > 0) && (
+          <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+            {localHidden > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="hover:text-foreground hover:underline"
+              >
+                展开剩余 {localHidden} 条
+              </button>
+            )}
+            {remoteHidden > 0 && (
+              <span>还有 {remoteHidden} 条未加载</span>
+            )}
+          </div>
+        )}
       </div>
     </li>
   )
