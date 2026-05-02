@@ -82,11 +82,10 @@
   color: #6db4ec;
 }
 
-/* Inline emoji pill — Coolapk inlines `[名字]` tokens that map to images on
- * a non-public emoji CDN. Until we have the full mapping, we render a small
- * chip with the token name. Defined in CSS (not Tailwind utilities) so the
- * DOMPurify HTML injection path renders identically without depending on
- * the Tailwind class allowlist. */
+/* Inline emoji pill — fallback for `[名字]` tokens whose name has no
+ * Unicode equivalent in `lib/emojiMap.ts`. Defined in CSS (not Tailwind
+ * utilities) so the DOMPurify HTML injection path renders identically
+ * without depending on the Tailwind class allowlist. */
 .emoji-tag {
   display: inline-block;
   margin: 0 0.125rem;
@@ -98,4 +97,18 @@
   line-height: 1.5;
   vertical-align: baseline;
   white-space: nowrap;
+}
+
+/* Inline Unicode emoji — mapped from `[名字]` tokens. Slightly larger
+ * than body text so it reads as a glyph, but inline-block + baseline
+ * alignment so it sits flush with surrounding Chinese text without
+ * breaking line height. `font-feature-settings` disables ligatures
+ * inside the span so adjacent emoji don't fuse on macOS. */
+.emoji-glyph {
+  display: inline-block;
+  margin: 0 1px;
+  font-size: 1.05em;
+  line-height: 1;
+  vertical-align: baseline;
+  font-feature-settings: 'liga' 0;
 }
