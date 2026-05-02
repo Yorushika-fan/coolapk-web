@@ -36,6 +36,17 @@ export type Reply = {
   likenum: number
   replyRows?: Reply[]
   replyRowsCount?: number
+  // Reply-to context. Present when this reply is addressed to a specific
+  // earlier comment / reply (the API embeds these from FeedReply model).
+  // `rusername` + `ruid` identify the addressee; `rid` is the parent
+  // reply id (unused by us but documented for reference).
+  rusername?: string
+  ruid?: string
+  rid?: string
+  // True when this reply was authored by the feed's original poster.
+  // Server-side computed from `uid == feed.uid`. Used to render the
+  // "楼主" badge.
+  isFeedAuthor?: boolean
 }
 
 export type UserProfile = {

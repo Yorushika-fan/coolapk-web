@@ -10,28 +10,60 @@ import { FeedSnippet } from '@/components/FeedSnippet'
 import { relativeTime } from '@/lib/date'
 import { ReplyListSkeleton } from '@/components/skeletons'
 
-function NestedReplies({ rows }: { rows: Reply[] }) {
+// Small chip indicating the reply was authored by the original poster
+// (uid match against the feed's author). Coolapk-app convention is a
+// soft amber/gold pill — distinct enough to read at a glance without
+// shouting over the username.
+function OPBadge() {
+  return (
+    <span className="ml-1 inline-flex shrink-0 items-center rounded bg-amber-500/15 px-1.5 text-[10px] font-medium leading-snug text-amber-700 dark:text-amber-400">
+      楼主
+    </span>
+  )
+}
+
+function NestedReplies({ rows, parentUid }: { rows: Reply[]; parentUid: string }) {
   if (!rows.length) return null
   return (
     <ul className="mt-2 space-y-1 rounded-lg bg-muted/40 px-3 py-2">
-      {rows.map((r) => (
-        <li
-          key={r.id}
-          className="text-[13px] leading-relaxed text-foreground/90"
-        >
-          <Link
-            to={`/u/${r.uid}`}
-            className="font-medium text-foreground hover:underline"
+      {rows.map((r) => {
+        // Show "回复 @某人" prefix only when the reply is addressed at
+        // someone OTHER than the parent comment author — within a single
+        // top-level thread, replies to the OP-of-thread are implicit and
+        // would be noisy. (Coolapk-app omits the prefix in this case.)
+        const showReplyTo =
+          !!r.rusername && !!r.ruid && r.ruid !== parentUid
+        return (
+          <li
+            key={r.id}
+            className="text-[13px] leading-relaxed text-foreground/90"
           >
-            {r.username}
-          </Link>
-          <span className="text-muted-foreground">: </span>
-          <FeedSnippet
-            html={r.message}
-            className="inline text-foreground/90"
-          />
-        </li>
-      ))}
+            <Link
+              to={`/u/${r.uid}`}
+              className="font-medium text-foreground hover:underline"
+            >
+              {r.username}
+            </Link>
+            {r.isFeedAuthor && <OPBadge />}
+            {showReplyTo && (
+              <>
+                <span className="text-muted-foreground"> 回复 </span>
+                <Link
+                  to={`/u/${r.ruid}`}
+                  className="feed-html-link font-medium hover:underline"
+                >
+                  @{r.rusername}
+                </Link>
+              </>
+            )}
+            <span className="text-muted-foreground">: </span>
+            <FeedSnippet
+              html={r.message}
+              className="inline text-foreground/90"
+            />
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -51,10 +83,13 @@ function ReplyItem({ reply }: { reply: Reply }) {
         </Avatar>
       </Link>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2 text-xs text-muted-foreground">
-          <Link to={`/u/${reply.uid}`} className="font-medium text-foreground">
-            {reply.username}
-          </Link>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+          <span className="inline-flex items-baseline">
+            <Link to={`/u/${reply.uid}`} className="font-medium text-foreground">
+              {reply.username}
+            </Link>
+            {reply.isFeedAuthor && <OPBadge />}
+          </span>
           <span>{relativeTime(reply.dateline)}</span>
         </div>
         <FeedSnippet
@@ -71,7 +106,7 @@ function ReplyItem({ reply }: { reply: Reply }) {
             {open ? '收起' : `查看 ${childCount} 条回复`}
           </Button>
         )}
-        {open && <NestedReplies rows={rows} />}
+        {open && <NestedReplies rows={rows} parentUid={reply.uid} />}
       </div>
     </li>
   )
