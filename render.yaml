@@ -1,0 +1,34 @@
+# Render Blueprint — `https://render.com/deploy?repo=…` button uses this.
+# Render builds the Dockerfile, exposes the service on its public URL, and
+# probes `/healthz` for liveness. iOS-mode credentials are declared as
+# `sync: false` so the deploy form prompts the operator to paste them
+# instead of baking them into the repo.
+
+services:
+  - type: web
+    name: coolapk-web
+    runtime: docker
+    plan: free          # 512 MB RAM, sleeps after 15 min idle (free tier)
+    region: singapore   # closest free region to mainland China; change to oregon/frankfurt if you prefer
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # ── Optional iOS-mode passthrough (post detail) ─────────────────
+      # Leave blank if you don't have iCoolMarket credentials handy —
+      # everything except the post-detail page still works without them.
+      - key: IOS_X_APP_TOKEN
+        sync: false
+      - key: IOS_X_APP_DEVICE
+        sync: false
+      - key: IOS_COOKIE
+        sync: false
+
+      # ── Tunables (sane defaults baked in; override here if needed) ─
+      - key: LOG_LEVEL
+        value: INFO
+      - key: TOKEN_HARD_TTL_S
+        value: "240"
+      - key: TOKEN_REFRESH_AFTER_S
+        value: "180"

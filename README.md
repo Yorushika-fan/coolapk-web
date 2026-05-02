@@ -17,6 +17,8 @@ _Browse the timeline, dive into topics, follow users — all from your browser, 
 [Configuration](#configuration) ·
 [Development](#development)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Yorushika-fan/coolapk-web)
+
 </div>
 
 ---
@@ -43,6 +45,20 @@ _Browse the timeline, dive into topics, follow users — all from your browser, 
 | **⚙️ Local Settings** | <ul><li>**Content filters**: by tag / user / content, with exact / fuzzy / regex matching</li><li>**Side-nav visibility**: hide channels you don't use</li><li>All preferences live in your browser's `localStorage` — never leave your device</li></ul> |
 
 ## Quick Start
+
+### Option A — One-click deploy on Render
+
+The fastest path to a live URL. Render builds the Docker image for you and gives you a free `*.onrender.com` subdomain.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Yorushika-fan/coolapk-web)
+
+1. Click the button — Render reads `render.yaml` and shows a deploy form.
+2. (Optional) Paste your `IOS_X_APP_TOKEN` / `IOS_X_APP_DEVICE` / `IOS_COOKIE` if you want post-detail to work; leave blank otherwise.
+3. Click **Apply** and wait ~3 minutes for the first build.
+
+> **Heads up:** Render's free tier puts the service to sleep after 15 minutes of inactivity, so the first request after a quiet period takes ~30 seconds while it spins back up. Upgrade to **Starter** ($7/mo) to keep it always-on.
+
+### Option B — Self-host with Docker
 
 > **Prerequisites:** Docker + Docker Compose. Tested on Ubuntu 22.04, Debian 12, macOS 14.
 
