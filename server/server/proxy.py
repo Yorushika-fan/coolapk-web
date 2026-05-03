@@ -7,6 +7,7 @@ Two routers exposed:
 The 1004-rotation hook lives in `_forward`: parse JSON, force-rotate on 1004, retry once.
 """
 import json
+import re
 import time
 import urllib.parse
 from typing import Optional, Tuple
@@ -178,12 +179,34 @@ def _ios_mode_enabled() -> bool:
     return bool(settings.IOS_X_APP_TOKEN and settings.IOS_X_APP_DEVICE)
 
 
+# iOS X-App-Token format (per Coolapk reverse-engineering notes):
+#   <32 hex>{smid}0x<hex_ts>
+# where the trailing `0x<hex_ts>` is just the request unix epoch in lowercase
+# hex. Server rejects with "请求已过期" when wall-time minus this ts exceeds
+# its tolerance (~30 min observed). If the 32-hex prefix isn't bound to ts
+# cryptographically, swapping just the trailing block at request time is
+# enough to keep the captured token alive indefinitely. If it IS ts-bound
+# we'll see "签名错误" instead — falls back to the original (stale) token
+# automatically since we only mutate when the pattern matches.
+_IOS_TOKEN_TS_RE = re.compile(r"0x([0-9a-fA-F]{6,12})$")
+
+
+def _refresh_ios_token_ts(token: str) -> str:
+    if not token:
+        return token
+    m = _IOS_TOKEN_TS_RE.search(token)
+    if not m:
+        return token
+    fresh = format(int(time.time()), "x")
+    return token[: m.start()] + "0x" + fresh
+
+
 def _build_ios_headers() -> dict:
     h = {
         "User-Agent": settings.IOS_USER_AGENT,
         "X-Requested-With": "XMLHttpRequest",
         "X-App-Id": "com.coolapk.app",
-        "X-App-Token": settings.IOS_X_APP_TOKEN,
+        "X-App-Token": _refresh_ios_token_ts(settings.IOS_X_APP_TOKEN),
         "X-App-Device": settings.IOS_X_APP_DEVICE,
         "X-App-Version": settings.IOS_X_APP_VERSION,
         "X-App-Code": settings.IOS_X_APP_CODE,
